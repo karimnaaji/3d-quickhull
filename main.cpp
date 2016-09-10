@@ -8,7 +8,6 @@
 
 int main(int argc, char** argv) {
     srand(time(NULL));
-    qh_context_t context;
     const int n = 100;
     const int nmeshes = 200;
     qh_vertex_t vertices[n];
