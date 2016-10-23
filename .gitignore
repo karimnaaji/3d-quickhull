@@ -1,3 +1,7 @@
+tests/build/
+
+.DS_Store
+
 # vim
 *.swp
 

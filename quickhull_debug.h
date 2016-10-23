@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define QUICKHULL_DEBUG
 #define QUICKHULL_IMPLEMENTATION
 #include "quickhull.h"
 

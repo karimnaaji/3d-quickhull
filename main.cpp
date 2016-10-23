@@ -7,13 +7,12 @@
 #include "quickhull_debug.h"
 
 int main(int argc, char** argv) {
-    srand(time(NULL));
-    const int n = 100;
-    const int nmeshes = 200;
+    //srand(time(NULL));
+    const int n = 200;
+    const int nmeshes = 100;
     qh_vertex_t vertices[n];
     float radius = 1.0;
 
-    clock_t start = clock();
     qh_mesh_t meshes[nmeshes];
     for (int i = 0; i < nmeshes; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -24,10 +23,11 @@ int main(int argc, char** argv) {
             vertices[j].y = sin(a1) * cos(a0) * radius * rand_0_1();
         }
 
+        clock_t start = clock();
         meshes[i] = qh_quickhull3d(vertices, n);
+        clock_t end = clock();
+        printf("Time (ms): %f\n", float(end - start) / CLOCKS_PER_SEC * 1000);
     }
-    clock_t end = clock();
-    printf("Time (ms): %f\n", float(end - start) / CLOCKS_PER_SEC * 1000);
 
     std::ofstream file("hull_mesh.obj");
     if (file.is_open()) {
