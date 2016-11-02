@@ -143,6 +143,18 @@ TEST_CASE("column.obj", "quickhull.h") {
     test_obj_file("models/column.obj", "column");
 }
 
+TEST_CASE("sponza_cooked.obj", "quickhull.h") {
+    test_obj_file("models/sponza_cooked.obj", "sponza");
+}
+
+TEST_CASE("banner.obj", "quickhull.h") {
+    test_obj_file("models/banner.obj", "banner");
+}
+
+TEST_CASE("sphere.obj", "quickhull.h") {
+    test_obj_file("models/sphere.obj", "sphere");
+}
+
 TEST_CASE("bunny.obj", "quickhull.h") {
     test_obj_file("models/bunny.obj", "bunny");
 }
