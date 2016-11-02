@@ -1,0 +1,15 @@
+2016-11-02
+  19292.24642.16.obj              6.4760 ms (time)              6.8788 ms (avg)                 n: 4862
+  19294.24640.16.obj             17.6390 ms (time)             18.4508 ms (avg)                 n: 19046
+  19294.24642.16.obj              3.9880 ms (time)              4.2835 ms (avg)                 n: 3473
+  19294.24644.16.obj              3.6210 ms (time)              3.7897 ms (avg)                 n: 741
+  19295.24642.16.obj              1.3910 ms (time)              1.4624 ms (avg)                 n: 2459
+  19296.24630.16.obj              2.4630 ms (time)              2.5326 ms (avg)                 n: 1594
+  19296.24641.16.obj              3.2980 ms (time)              3.6181 ms (avg)                 n: 1759
+           bunny.obj              6.2680 ms (time)              6.5692 ms (avg)                 n: 2503
+          column.obj              0.7840 ms (time)              0.8737 ms (avg)                 n: 1414
+            cube.obj              0.0050 ms (time)              0.0060 ms (avg)                 n: 8
+        platform.obj              0.0130 ms (time)              0.0138 ms (avg)                 n: 16
+         suzanne.obj              2.3780 ms (time)              2.4639 ms (avg)                 n: 2012
+            tree.obj              0.9090 ms (time)              0.9173 ms (avg)                 n: 3367
+   tree1b_lod1_2.obj              0.1470 ms (time)              0.1848 ms (avg)                 n: 347

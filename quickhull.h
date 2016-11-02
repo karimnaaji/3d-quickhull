@@ -88,8 +88,9 @@ void qh_free_mesh(qh_mesh_t mesh);
 
 #ifdef QUICKHULL_IMPLEMENTATION
 
-#include <math.h> // sqrt & fabs
-#include <stdio.h>
+#include <math.h>   // sqrt & fabs
+#include <stdio.h>  // FILE
+#include <string.h> // memcpy
 
 // Quickhull helpers, define your own if needed
 #ifndef QUICKHULL_HELPERS
@@ -954,26 +955,26 @@ retry:
     }
 }
 
-void qh_mesh_export(qh_mesh_t mesh, char const* filename)
+void qh_mesh_export(qh_mesh_t const* mesh, char const* filename)
 {
     FILE* objfile = fopen(filename, "wt");
     fprintf(objfile, "o\n");
 
-    for (int i = 0; i < mesh.nvertices; ++i) {
-        qh_vertex_t v = mesh.vertices[i];
+    for (int i = 0; i < mesh->nvertices; ++i) {
+        qh_vertex_t v = mesh->vertices[i];
         fprintf(objfile, "v %f %f %f\n", v.x, v.y, v.z);
     }
 
-    for (int i = 0; i < mesh.nnormals; ++i) {
-        qh_vec3_t n = mesh.normals[i];
+    for (int i = 0; i < mesh->nnormals; ++i) {
+        qh_vec3_t n = mesh->normals[i];
         fprintf(objfile, "vn %f %f %f\n", n.x, n.y, n.z);
     }
 
-    for (int i = 0, j = 0; i < mesh.nindices; i += 3, j++) {
+    for (int i = 0, j = 0; i < mesh->nindices; i += 3, j++) {
         fprintf(objfile, "f %u/%u %u/%u %u/%u\n",
-            mesh.indices[i+0] + 1, mesh.normalindices[j] + 1,
-            mesh.indices[i+1] + 1, mesh.normalindices[j] + 1,
-            mesh.indices[i+2] + 1, mesh.normalindices[j] + 1);
+            mesh->indices[i+0] + 1, mesh->normalindices[j] + 1,
+            mesh->indices[i+1] + 1, mesh->normalindices[j] + 1,
+            mesh->indices[i+2] + 1, mesh->normalindices[j] + 1);
     }
 
     fclose(objfile);

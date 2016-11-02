@@ -63,10 +63,10 @@ void test_obj_file(std::string path, std::string name) {
         REQUIRE(m.indices[i] < m.nvertices);
     }
     if (!valid) {
-        qh_mesh_export(m, std::string(name + "_failure.obj").c_str());
+        qh_mesh_export(&m, std::string(name + "_failure.obj").c_str());
         dump(vertices.data(), vertices.size(), failurestep);
     } else {
-        qh_mesh_export(m, std::string(name + "_hull.obj").c_str());
+        qh_mesh_export(&m, std::string(name + "_hull.obj").c_str());
         // dump(vertices.data(), vertices.size(), 0);
     }
     qh_free_mesh(m);
@@ -102,7 +102,7 @@ TEST_CASE("200 meshes on a sphere", "quickhull.h") {
         if (!valid) {
             qh_mesh_t m = qh_quickhull3d(vertices, n);
             std::cout << "Saving failure mesh" << std::endl;
-            qh_mesh_export(m, std::string("failure_mesh" + std::to_string(i) + ".obj").c_str());
+            qh_mesh_export(&m, std::string("failure_mesh" + std::to_string(i) + ".obj").c_str());
             dump(vertices, n, failurestep);
             qh_free_mesh(m);
         }
