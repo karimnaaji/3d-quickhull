@@ -4,6 +4,7 @@
 #include <time.h>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
+#define FAST
 
 void dump(qh_vertex_t* vertices, unsigned int n, unsigned int failurestep) {
     std::ofstream file("dump" + std::to_string(failurestep) + ".txt");
@@ -20,8 +21,11 @@ bool load_obj(std::string path, std::vector<qh_vertex_t>& vertices) {
     std::vector<tinyobj::material_t> materials;
     std::string err;
     bool ret = tinyobj::LoadObj(shapes, materials, err, path.c_str(), NULL);
-    if (!err.empty() || !ret) {
+    if (!ret) {
         return false;
+    }
+    if (!err.empty()) {
+        printf("tinyobj::LoadObj error: %s\n", err.c_str());
     }
     vertices.reserve(shapes[0].mesh.positions.size() / 3);
     for (size_t f = 0; f < shapes[0].mesh.positions.size(); f += 3) {
@@ -48,6 +52,7 @@ void test_obj_file(std::string path, std::string name) {
     float epsilon;
     qh_context_t context;
     if (!load_obj(path, vertices)) {
+        printf("Loading %s failed\n", path.c_str());
         REQUIRE(false);
     }
     printf("Loaded %ld vertices [%s]\n", vertices.size(), path.c_str());
@@ -55,13 +60,13 @@ void test_obj_file(std::string path, std::string name) {
     qh__init_context(&context, vertices.data(), vertices.size());
     qh__build_tetrahedron(&context);
     unsigned int failurestep = 0;
+#ifdef FAST
+    qh__build_hull(&context, epsilon, -1, NULL);
+#else
     qh__build_hull(&context, epsilon, -1, &failurestep);
+#endif
     int valid = qh__test_hull(&context, epsilon, 0);
     qh_mesh_t m = qh_quickhull3d(vertices.data(), vertices.size());
-    for (int i = 0; i < m.nindices; ++i) {
-        REQUIRE(m.indices[i] >= 0);
-        REQUIRE(m.indices[i] < m.nvertices);
-    }
     if (!valid) {
         qh_mesh_export(&m, std::string(name + "_failure.obj").c_str());
         dump(vertices.data(), vertices.size(), failurestep);
@@ -69,8 +74,20 @@ void test_obj_file(std::string path, std::string name) {
         qh_mesh_export(&m, std::string(name + "_hull.obj").c_str());
         // dump(vertices.data(), vertices.size(), 0);
     }
-    qh_free_mesh(m);
     REQUIRE(valid);
+    for (int i = 0; i < m.nindices; ++i) {
+        REQUIRE(m.indices[i] >= 0);
+        REQUIRE(m.indices[i] < m.nvertices);
+        REQUIRE(!std::isnan(m.vertices[m.indices[i]].x));
+        REQUIRE(!std::isnan(m.vertices[m.indices[i]].y));
+        REQUIRE(!std::isnan(m.vertices[m.indices[i]].z));
+    }
+    for (int i = 0; i < m.nnormals; ++i) {
+        REQUIRE(!std::isnan(m.normals[m.normalindices[i]].x));
+        REQUIRE(!std::isnan(m.normals[m.normalindices[i]].y));
+        REQUIRE(!std::isnan(m.normals[m.normalindices[i]].z));
+    }
+    qh_free_mesh(m);
     qh__free_context(&context);
 }
 
@@ -97,7 +114,11 @@ TEST_CASE("200 meshes on a sphere", "quickhull.h") {
         qh__init_context(&context, vertices, n);
         qh__build_tetrahedron(&context);
         unsigned int failurestep = 0;
+#ifdef FAST
+        qh__build_hull(&context, epsilon, -1, NULL);
+#else
         qh__build_hull(&context, epsilon, -1, &failurestep);
+#endif
         int valid = qh__test_hull(&context, epsilon, 0);
         if (!valid) {
             qh_mesh_t m = qh_quickhull3d(vertices, n);
@@ -147,14 +168,6 @@ TEST_CASE("sponza_cooked.obj", "quickhull.h") {
     test_obj_file("models/sponza_cooked.obj", "sponza");
 }
 
-TEST_CASE("banner.obj", "quickhull.h") {
-    test_obj_file("models/banner.obj", "banner");
-}
-
-TEST_CASE("sphere.obj", "quickhull.h") {
-    test_obj_file("models/sphere.obj", "sphere");
-}
-
 TEST_CASE("bunny.obj", "quickhull.h") {
     test_obj_file("models/bunny.obj", "bunny");
 }
@@ -178,4 +191,14 @@ TEST_CASE("platform.obj", "quickhull.h") {
 TEST_CASE("tree1b_lod1_2.obj", "quickhull.h") {
     test_obj_file("models/tree1b_lod1_2.obj", "tree_lod");
 }
+
+#if 0
+TEST_CASE("banner.obj", "quickhull.h") {
+    test_obj_file("models/banner.obj", "banner");
+}
+
+TEST_CASE("sphere.obj", "quickhull.h") {
+    test_obj_file("models/sphere.obj", "sphere");
+}
+#endif
 

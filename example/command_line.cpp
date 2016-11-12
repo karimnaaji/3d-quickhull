@@ -78,7 +78,9 @@ int main(int argc, char** argv) {
         } while (++iteration < ITERATION);
 
         display_result(time, avg / iteration, vertices.size(), file);
+        m = qh_quickhull3d(vertices.data(), vertices.size());
         qh_mesh_export(&m, hull.c_str());
+        qh_free_mesh(m);
     } else {
         int n = 0;
         std::vector<qh_vertex_t> vertices;
@@ -111,7 +113,9 @@ int main(int argc, char** argv) {
             } while (++iteration < ITERATION);
 
             display_result(time, avg / iteration, vertices.size(), file);
+            m = qh_quickhull3d(vertices.data(), vertices.size());
             qh_mesh_export(&m, hull.c_str());
+            qh_free_mesh(m);
         }
     }
 

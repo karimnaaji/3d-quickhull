@@ -3,7 +3,7 @@ CC=gcc
 CXX=g++
 
 CFLAGS=-g -O0 -DDEBUG
-# CFLAGS=-O3 -DRELEASE
+CFLAGS=-O3 -DRELEASE
 
 all: qh.out quickhull_c99.out random_generation.out
 

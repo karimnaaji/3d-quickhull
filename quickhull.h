@@ -328,16 +328,6 @@ qh_vec3_t qh__vec3_cross(qh_vec3_t* v1, qh_vec3_t* v2)
     return cross;
 }
 
-qh_vec3_t qh__face_normal(qh_index_t vertices[3], qh_context_t* context)
-{
-    qh_vec3_t v0 = context->vertices[vertices[1]];
-    qh__vec3_sub(&v0, context->vertices + vertices[0]);
-    qh_vec3_t v1 = context->vertices[vertices[2]];
-    qh__vec3_sub(&v1, context->vertices + vertices[0]);
-
-    return qh__vec3_cross(&v0, &v1);
-}
-
 qh_vertex_t qh__face_centroid(qh_index_t vertices[3], qh_context_t* context)
 {
     qh_vertex_t centroid;
@@ -556,6 +546,22 @@ static inline void qh__assert_face(qh_face_t* face, qh_context_t* context)
 
 #ifdef QUICKHULL_DEBUG
 
+void qh__log_face(qh_context_t* context, qh_face_t const* face) {
+    QH_LOG("Face %ld:\n", face->face);
+    for (int i = 0; i < 3; ++i) {
+        qh_half_edge_t edge = context->edges[face->edges[i]];
+        QH_LOG("\te%d %ld\n", i, edge.he);
+        QH_LOG("\t\te%d.opposite_he %ld\n", i, edge.opposite_he);
+        QH_LOG("\t\te%d.next_he %ld\n", i, edge.next_he);
+        QH_LOG("\t\te%d.previous_he %ld\n", i, edge.previous_he);
+        QH_LOG("\t\te%d.to_vertex %ld\n", i, edge.to_vertex);
+        QH_LOG("\t\te%d.adjacent_face %ld\n", i, edge.adjacent_face);
+    }
+    QH_LOG("\tnormal %f %f %f\n", face->normal.x, face->normal.y, face->normal.z);
+    QH_LOG("\tsdist %f\n", face->sdist);
+    QH_LOG("\tcentroid %f %f %f\n", face->centroid.x, face->centroid.y, face->centroid.z);
+}
+
 int qh__test_hull(qh_context_t* context, float epsilon, int testiset)
 {
     unsigned int i, j, k;
@@ -605,6 +611,8 @@ int qh__test_hull(qh_context_t* context, float epsilon, int testiset)
             qh__vec3_sub(&vertex, &face->centroid);
             if (qh__vec3_dot(&face->normal, &vertex) > epsilon) {
                 QH_LOG("Failure for face %ld and vertex %ld\n", face->face, vindex);
+                QH_LOG("Vertex %ld - Face %ld: %f %f %f\n", face->face, vindex, vertex.x, vertex.y, vertex.z);
+                qh__log_face(context, face);
                 return 0;
             }
         }
@@ -645,7 +653,7 @@ void qh__build_hull(qh_context_t* context, float epsilon)
         }
 
         #ifdef QUICKHULL_DEBUG
-        if (!qh__test_hull(context, epsilon, 1) && failurestep != NULL) {
+        if (failurestep != NULL && !qh__test_hull(context, epsilon, 1)) {
             if (*failurestep == 0) {
                 *failurestep = iteration;
                 break;
@@ -802,8 +810,14 @@ retry:
                 // Ensure that face is not pointing backwards
                 {
                     qh_vertex_t centroid = context->centroid;
+                    qh_vec3_t v0, v1;
 
-                    normal = qh__face_normal(verts, context);
+                    v0 = context->vertices[verts[1]];
+                    qh__vec3_sub(&v0, context->vertices + verts[0]);
+                    v1 = context->vertices[verts[2]];
+                    qh__vec3_sub(&v1, context->vertices + verts[0]);
+
+                    normal = qh__vec3_cross(&v0, &v1);
                     fcentroid = qh__face_centroid(verts, context);
 
                     qh__vec3_sub(&centroid, &fcentroid);
@@ -1259,8 +1273,8 @@ qh_mesh_t qh_quickhull3d(qh_vertex_t const* vertices, unsigned int nvertices)
     indices = QH_MALLOC(unsigned int, nindices);
 
     m.normals = QH_MALLOC(qh_vertex_t, nfaces);
-    m.nnormals = nfaces;
     m.normalindices = QH_MALLOC(unsigned int, nfaces);
+    m.nnormals = nfaces;
 
     // Assign normals
     {
@@ -1270,17 +1284,6 @@ qh_mesh_t qh_quickhull3d(qh_vertex_t const* vertices, unsigned int nvertices)
             if (!context.faces[i].valid) { continue; }
 
             m.normals[index] = context.faces[i].normal;
-            index++;
-        }
-    }
-
-    // Assign normal indices and default set of indices
-    {
-        index = 0;
-
-        for (i = 0; i < context.nfaces; ++i) {
-            if (!context.faces[i].valid) { continue; }
-
             m.normalindices[index] = index;
 
             qh_half_edge_t e0 = context.edges[context.faces[i].edges[0]];

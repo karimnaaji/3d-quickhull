@@ -28,7 +28,7 @@ qh_mesh_t mesh = qh_quickhull3d(vertices, n);
 
 // ...
 
-qh_free_mesh(meshes);
+qh_free_mesh(mesh);
 
 ```
 
