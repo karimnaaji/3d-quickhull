@@ -13,3 +13,21 @@
          suzanne.obj              2.3780 ms (time)              2.4639 ms (avg)                 n: 2012
             tree.obj              0.9090 ms (time)              0.9173 ms (avg)                 n: 3367
    tree1b_lod1_2.obj              0.1470 ms (time)              0.1848 ms (avg)                 n: 347
+2016-11-11
+  19292.24642.16.obj              6.6280 ms (time)              6.7697 ms (avg)                 n: 4862
+  19294.24640.16.obj             16.9730 ms (time)             17.3597 ms (avg)                 n: 19046
+  19294.24642.16.obj              4.0370 ms (time)              4.2817 ms (avg)                 n: 3473
+  19294.24644.16.obj              2.0930 ms (time)              2.2460 ms (avg)                 n: 741
+  19295.24642.16.obj              1.3600 ms (time)              1.4288 ms (avg)                 n: 2459
+  19296.24630.16.obj              2.3990 ms (time)              2.4301 ms (avg)                 n: 1594
+  19296.24641.16.obj              3.4250 ms (time)              3.4208 ms (avg)                 n: 1759
+          banner.obj              7.2950 ms (time)              7.3202 ms (avg)                 n: 8450
+           bunny.obj              6.4020 ms (time)              6.4072 ms (avg)                 n: 2503
+          column.obj              0.8660 ms (time)              0.8265 ms (avg)                 n: 1414
+            cube.obj              0.0050 ms (time)              0.0059 ms (avg)                 n: 8
+        platform.obj              0.0200 ms (time)              0.0169 ms (avg)                 n: 16
+          sphere.obj             21.7330 ms (time)             21.8260 ms (avg)                 n: 994
+   sponza_cooked.obj              2.1250 ms (time)              2.1441 ms (avg)                 n: 39624
+         suzanne.obj              2.4350 ms (time)              2.4548 ms (avg)                 n: 2012
+            tree.obj              0.8920 ms (time)              0.9068 ms (avg)                 n: 3367
+   tree1b_lod1_2.obj              0.1540 ms (time)              0.1817 ms (avg)                 n: 347
