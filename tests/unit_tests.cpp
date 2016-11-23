@@ -1,10 +1,19 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "quickhull_debug.h"
 #include <time.h>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #define FAST
+
+#ifndef FAST
+#define QUICKHULL_DEBUG
+#endif
+#define QUICKHULL_IMPLEMENTATION
+#include "quickhull.h"
+
+static float rand_0_1() {
+    return (float) rand() / RAND_MAX;
+}
 
 void dump(qh_vertex_t* vertices, unsigned int n, unsigned int failurestep) {
     std::ofstream file("dump" + std::to_string(failurestep) + ".txt");
@@ -70,7 +79,7 @@ void test_obj_file(std::string path, std::string name) {
     qh__build_tetrahedron(&context);
     unsigned int failurestep = 0;
 #ifdef FAST
-    qh__build_hull(&context, epsilon, -1, NULL);
+    qh__build_hull(&context, epsilon);
 #else
     qh__build_hull(&context, epsilon, -1, &failurestep);
 #endif
@@ -124,7 +133,7 @@ TEST_CASE("200 meshes on a sphere", "quickhull.h") {
         qh__build_tetrahedron(&context);
         unsigned int failurestep = 0;
 #ifdef FAST
-        qh__build_hull(&context, epsilon, -1, NULL);
+        qh__build_hull(&context, epsilon);
 #else
         qh__build_hull(&context, epsilon, -1, &failurestep);
 #endif
@@ -146,21 +155,19 @@ TEST_CASE("Two circle shapes", "quickhull.h") {
         auto c0 = circle(6 + i / 10);
         auto c1 = circle(5 + i);
         for (int j = 0; j < c1.size(); ++j) {
-            c1[j].z += 1.0; // / 1000.0;
-            //c1[i].z += 5.0;
+            c1[j].z += 1.0;
         }
         auto v(c0);
         v.insert(v.end(), c1.begin(), c1.end());
         qh_vertex_t* vertices = v.data();
         unsigned int n = v.size();
         qh_context_t context;
-        float epsilon;
-        epsilon = qh__compute_epsilon(vertices, n);
+        float epsilon = qh__compute_epsilon(vertices, n);
         qh__init_context(&context, vertices, n);
         qh__build_tetrahedron(&context);
         unsigned int failurestep = 0;
 #ifdef FAST
-        qh__build_hull(&context, epsilon, -1, NULL);
+        qh__build_hull(&context, epsilon);
 #else
         qh__build_hull(&context, epsilon, -1, &failurestep);
 #endif
@@ -168,8 +175,8 @@ TEST_CASE("Two circle shapes", "quickhull.h") {
         if (!valid) {
             qh_mesh_t m = qh_quickhull3d(vertices, n);
             std::cout << "Saving failure mesh" << std::endl;
-            qh_mesh_export(&m, std::string("failure_mesh_two_circles.obj").c_str());
-            dump(vertices, n, failurestep);
+            qh_mesh_export(&m, std::string("failure_mesh_two_circles" + std::to_string(i) + ".obj").c_str());
+            dump(vertices, n, i);
             qh_free_mesh(m);
         }
         REQUIRE(valid);
@@ -243,9 +250,9 @@ TEST_CASE("sponza_cooked.obj", "quickhull.h") {
 TEST_CASE("banner.obj", "quickhull.h") {
     test_obj_file("models/banner.obj", "banner");
 }
+#endif
 
 TEST_CASE("sphere.obj", "quickhull.h") {
     test_obj_file("models/sphere.obj", "sphere");
 }
-#endif
 

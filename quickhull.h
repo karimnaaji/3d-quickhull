@@ -562,6 +562,8 @@ void qh__log_face(qh_context_t* context, qh_face_t const* face) {
     QH_LOG("\tcentroid %f %f %f\n", face->centroid.x, face->centroid.y, face->centroid.z);
 }
 
+#endif
+
 int qh__test_hull(qh_context_t* context, float epsilon, int testiset)
 {
     unsigned int i, j, k;
@@ -612,7 +614,9 @@ int qh__test_hull(qh_context_t* context, float epsilon, int testiset)
             if (qh__vec3_dot(&face->normal, &vertex) > epsilon) {
                 QH_LOG("Failure for face %ld and vertex %ld\n", face->face, vindex);
                 QH_LOG("Vertex %ld - Face %ld: %f %f %f\n", face->face, vindex, vertex.x, vertex.y, vertex.z);
+                #ifdef QUICKHULL_DEBUG
                 qh__log_face(context, face);
+                #endif
                 return 0;
             }
         }
@@ -620,8 +624,6 @@ int qh__test_hull(qh_context_t* context, float epsilon, int testiset)
 
     return 1;
 }
-
-#endif
 
 #ifdef QUICKHULL_DEBUG
 void qh__build_hull(qh_context_t* context, float epsilon, unsigned int step, unsigned int* failurestep)
