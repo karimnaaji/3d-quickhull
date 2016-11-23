@@ -1,6 +1,11 @@
 tests/build/
+tests/*.obj
+tests/dump*
+example/*.obj
 
 .DS_Store
+
+*.diff
 
 # vim
 *.swp
