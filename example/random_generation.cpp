@@ -4,7 +4,13 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include "quickhull_debug.h"
+#define QUICKHULL_DEBUG
+#define QUICKHULL_IMPLEMENTATION
+#include "quickhull.h"
+
+static float rand_0_1() {
+    return (float) rand() / RAND_MAX;
+}
 
 int main(int argc, char** argv) {
     //srand(time(NULL));

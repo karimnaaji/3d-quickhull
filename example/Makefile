@@ -16,7 +16,7 @@ quickhull_c99.out: quickhull.c ../quickhull.h
 qh.out: command_line.cpp ../quickhull.h
 	${CXX} $< ${CFLAGS} -o $@ -I.. -I../tests -std=c++14
 
-random_generation.out: random_generation.cpp ../quickhull.h ../quickhull_debug.h
+random_generation.out: random_generation.cpp ../quickhull.h
 	${CXX} $< ${CFLAGS} -o $@ -I.. -Wall -Wno-null-dereference -Wno-unused-function -std=c++14
 
 run-bench: qh.out
