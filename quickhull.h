@@ -275,6 +275,13 @@ void qh__vec3_multiply(qh_vec3_t* a, float v)
     a->z *= v;
 }
 
+int qh__vertex_equals_epsilon(qh_vertex_t* a, qh_vertex_t* b, float epsilon)
+{
+    return fabs(a->x - b->x) <= epsilon &&
+           fabs(a->y - b->y) <= epsilon &&
+           fabs(a->z - b->z) <= epsilon;
+}
+
 float qh__vec3_length2(qh_vec3_t* v)
 {
     return v->x * v->x + v->y * v->y + v->z * v->z;
@@ -612,8 +619,6 @@ int qh__test_hull(qh_context_t* context, float epsilon, int testiset)
             qh_vertex_t vertex = context->vertices[vindex];
             qh__vec3_sub(&vertex, &face->centroid);
             if (qh__vec3_dot(&face->normal, &vertex) > epsilon) {
-                QH_LOG("Failure for face %ld and vertex %ld\n", face->face, vindex);
-                QH_LOG("Vertex %ld - Face %ld: %f %f %f\n", face->face, vindex, vertex.x, vertex.y, vertex.z);
                 #ifdef QUICKHULL_DEBUG
                 qh__log_face(context, face);
                 #endif
@@ -892,10 +897,10 @@ retry:
                         } else {
                             dot = fabsf(dot);
 
-                            if ((dot <= epsilon && dot > 0) || dot == 0) {
+                            if (dot <= epsilon && dot >= 0) {
                                 qh_vec3_t n = newface->normal;
 
-                                // Allow epsilon degeneration along the face normal
+                                // allow epsilon degeneration along the face normal
                                 qh__vec3_multiply(&n, epsilon);
                                 qh__vec3_add(context->vertices + vertex, &n);
 
@@ -996,7 +1001,7 @@ void qh_mesh_export(qh_mesh_t const* mesh, char const* filename)
     fclose(objfile);
 }
 
-qh_face_t* qh__build_tetrahedron(qh_context_t* context)
+qh_face_t* qh__build_tetrahedron(qh_context_t* context, float epsilon)
 {
     int i, j;
     qh_index_t vertices[3];
@@ -1099,15 +1104,31 @@ qh_face_t* qh__build_tetrahedron(qh_context_t* context)
                 continue;
             }
 
-            v = context->vertices+i;
+            v = context->vertices + i;
 
             for (j = 0; j < 4; ++j) {
+                float dot;
                 qh_face_t* face = context->faces+j;
+                qh__log_face(context, face);
                 qh_vertex_t cv = *v;
                 qh__vec3_sub(&cv, &face->centroid);
 
-                if (qh__vec3_dot(&cv, &face->normal) >= 0) {
+                dot = qh__vec3_dot(&cv, &face->normal);
+
+                if (dot > epsilon) {
                     dface = face;
+                    break;
+                } else {
+                    dot = fabs(dot);
+                    if (dot <= epsilon && dot >= 0) {
+                        qh_vec3_t n = face->normal;
+
+                        qh__vec3_multiply(&n, epsilon);
+                        qh__vec3_add(v, &n);
+
+                        dface = face;
+                        break;
+                    }
                 }
             }
 
@@ -1153,6 +1174,27 @@ qh_face_t* qh__build_tetrahedron(qh_context_t* context)
     QH_ASSERT(context->facestack.size == 4);
 
     return faces;
+}
+
+void qh__remove_vertex_duplicates(qh_context_t* context, float epsilon)
+{
+    int i, j, k;
+    for (i = 0; i < context->nvertices; ++i) {
+        qh_vertex_t* v = context->vertices + i;
+        if (v->x == 0) v->x = 0;
+        if (v->y == 0) v->y = 0;
+        if (v->z == 0) v->z = 0;
+        for (j = i + 1; j < context->nvertices; ++j) {
+            if (qh__vertex_equals_epsilon(context->vertices + i,
+                        context->vertices + j, epsilon))
+            {
+                for (k = j; k < context->nvertices - 1; ++k) {
+                    context->vertices[k] = context->vertices[k+1];
+                }
+                context->nvertices--;
+            }
+        }
+    }
 }
 
 void qh__init_context(qh_context_t* context, qh_vertex_t const* vertices, unsigned int nvertices)
@@ -1254,8 +1296,10 @@ qh_mesh_t qh_quickhull3d(qh_vertex_t const* vertices, unsigned int nvertices)
 
     qh__init_context(&context, vertices, nvertices);
 
+    qh__remove_vertex_duplicates(&context, epsilon);
+
     // Build the initial tetrahedron
-    qh__build_tetrahedron(&context);
+    qh__build_tetrahedron(&context, epsilon);
 
     // Build the convex hull
     #ifdef QUICKHULL_DEBUG
