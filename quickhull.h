@@ -529,6 +529,33 @@ int qh__face_can_see_vertex(qh_face_t* face, qh_vertex_t* v)
     return qh__vec3_dot(&tov, &face->normal) > 0;
 }
 
+int qh__face_can_see_vertex(qh_context_t* context, qh_face_t* face, qh_vertex_t* v, float epsilon)
+{
+    float dot;
+    qh_vec3_t tov = *v;
+
+    qh__vec3_sub(&tov, &face->centroid);
+    dot = qh__vec3_dot(&tov, &face->normal);
+
+    if (dot > epsilon) {
+        return 1;
+    } else {
+        dot = fabsf(dot);
+
+        if (dot <= epsilon && dot >= 0) {
+            qh_vec3_t n = face->normal;
+
+            // allow epsilon degeneration along the face normal
+            qh__vec3_multiply(&n, epsilon);
+            qh__vec3_add(v, &n);
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 static inline void qh__assert_half_edge(qh_half_edge_t* edge, qh_context_t* context)
 {
     QH_ASSERT(edge->opposite_he != -1);
@@ -805,7 +832,6 @@ void qh__build_hull(qh_context_t* context, float epsilon)
                 prevhe = context->edges + last;
                 nexthe = context->edges + top;
 
-retry:
                 if (reversed) {
                     QH_SWAP(qh_half_edge_t*, prevhe, nexthe);
                 }
@@ -813,27 +839,6 @@ retry:
                 verts[0] = prevhe->to_vertex;
                 verts[1] = nexthe->to_vertex;
                 verts[2] = apex;
-
-                // Ensure that face is not pointing backwards
-                {
-                    qh_vertex_t centroid = context->centroid;
-                    qh_vec3_t v0, v1;
-
-                    v0 = context->vertices[verts[1]];
-                    qh__vec3_sub(&v0, context->vertices + verts[0]);
-                    v1 = context->vertices[verts[2]];
-                    qh__vec3_sub(&v1, context->vertices + verts[0]);
-
-                    normal = qh__vec3_cross(&v0, &v1);
-                    fcentroid = qh__face_centroid(verts, context);
-
-                    qh__vec3_sub(&centroid, &fcentroid);
-
-                    if (qh__vec3_dot(&normal, &centroid) > 0.0) {
-                        reversed = !reversed;
-                        goto retry;
-                    }
-                }
 
                 context->faces[nexthe->adjacent_face].valid = 0;
 
@@ -884,29 +889,9 @@ retry:
                             continue;
                         }
 
-                        cv = *v;
-                        float dot;
-
-                        qh__vec3_sub(&cv, &newface->centroid);
-
-                        dot = qh__vec3_dot(&cv, &newface->normal);
-
-                        if (dot > epsilon) {
+                        if (qh__face_can_see_vertex(context, newface, context->vertices + vertex, epsilon)) {
                             dface = newface;
                             break;
-                        } else {
-                            dot = fabsf(dot);
-
-                            if (dot <= epsilon && dot >= 0) {
-                                qh_vec3_t n = newface->normal;
-
-                                // allow epsilon degeneration along the face normal
-                                qh__vec3_multiply(&n, epsilon);
-                                qh__vec3_add(context->vertices + vertex, &n);
-
-                                dface = newface;
-                                break;
-                            }
                         }
                     }
 
@@ -1104,31 +1089,10 @@ qh_face_t* qh__build_tetrahedron(qh_context_t* context, float epsilon)
                 continue;
             }
 
-            v = context->vertices + i;
-
             for (j = 0; j < 4; ++j) {
-                float dot;
-                qh_face_t* face = context->faces+j;
-                qh__log_face(context, face);
-                qh_vertex_t cv = *v;
-                qh__vec3_sub(&cv, &face->centroid);
-
-                dot = qh__vec3_dot(&cv, &face->normal);
-
-                if (dot > epsilon) {
-                    dface = face;
+                if (qh__face_can_see_vertex(context, context->faces + j, context->vertices + i, epsilon)) {
+                    dface = context->faces + j;
                     break;
-                } else {
-                    dot = fabs(dot);
-                    if (dot <= epsilon && dot >= 0) {
-                        qh_vec3_t n = face->normal;
-
-                        qh__vec3_multiply(&n, epsilon);
-                        qh__vec3_add(v, &n);
-
-                        dface = face;
-                        break;
-                    }
                 }
             }
 
