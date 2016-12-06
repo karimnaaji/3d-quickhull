@@ -8,7 +8,7 @@ CFLAGS=-O3 -DRELEASE
 all: qh.out quickhull_c99.out random_generation.out qh-test.out
 
 clean:
-	rm -f *.out hull_*
+	rm -rf *.out *.obj *.dSYM res*
 
 quickhull_c99.out: quickhull.c ../quickhull.h
 	${CC} -std=c99 ${CFLAGS} $< -Wall -Wno-null-dereference -o $@ -I..
