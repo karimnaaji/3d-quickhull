@@ -3,6 +3,9 @@ _Header only 3d quickhull in ANSI C_
 
 ![](images/quickhull.png)
 
+Usage
+=====
+
 To use this library, simply include `quickhull.h` once with the `QUICKHULL_IMPLEMENTATION` define in a `.cpp` file.
 
 ```c
@@ -32,6 +35,14 @@ qh_free_mesh(mesh);
 
 ```
 
-If you're interested in low-polygon rendering, generating hundreds of meshes on a randomly generated set of points around a sphere can give such results:
+Example
+=======
+
+
+- Open Frameworks wrapper: https://github.com/satcy/ofx3DQuickHull
+- Obj to hull: https://github.com/karimnaaji/3d-quickhull/blob/master/example/command_line.cpp
+
+If you're interested in low-polygon rendering, using quickhull as a base for mesh triangulation can give such results:
 
 ![](images/mesh_quickhull.png)
+![](http://karim.naaji.fr/images/lowpoly0.png)
